@@ -18,9 +18,17 @@ def get_gspread_client():
     )
     return gspread.authorize(credentials)
 
+from datetime import date
+
 def extract_sheet(sheet_id, worksheet_name, fuente, year, month):
     logger.info(f"Extrayendo datos | Sheet: {sheet_id}")
 
+    target_year = year
+    target_month = month
+
+    # =========================
+    # CONEXIÓN GOOGLE SHEETS
+    # =========================
     ws = (
         get_gspread_client()
         .open_by_key(sheet_id)
@@ -54,16 +62,16 @@ def extract_sheet(sheet_id, worksheet_name, fuente, year, month):
     df["fecha"] = pd.to_datetime(df["FechaEntrega"], errors="coerce")
 
     # =========================
-    # FILTRO MENSUAL
+    # FILTRO MES ANTERIOR
     # =========================
     total_antes = len(df)
     df = df[
-        (df["fecha"].dt.year == year) &
-        (df["fecha"].dt.month == month)
+        (df["fecha"].dt.year == target_year) &
+        (df["fecha"].dt.month == target_month)
     ]
 
     logger.info(
-        f"Filtro mensual {year}-{month:02d} | "
+        f"Filtro mes anterior {target_year}-{target_month:02d} | "
         f"Antes: {total_antes} | Después: {len(df)}"
     )
 
@@ -84,4 +92,3 @@ def extract_sheet(sheet_id, worksheet_name, fuente, year, month):
         logger.warning("No hay registros luego de aplicar los filtros")
 
     return df
-

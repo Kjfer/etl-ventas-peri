@@ -16,11 +16,21 @@ logger = get_logger("PIPELINE")
 load_dotenv()
 
 def run_pipeline(year=None, month=None):
-    today = date.today()
-    year = year or today.year
-    month = month or today.month
+    # =========================
+    # DEFINICIÓN DE PERIODO
+    # =========================
+    today = date(2025,10,1)
+    if today.month == 1:
+        target_year = today.year - 1
+        target_month = 12
+    else:
+        target_year = today.year
+        target_month = today.month - 1
 
-    logger.info(f"===== ETL MENSUAL {year}-{month:02d} =====")
+    logger.info(
+        f"===== ETL MENSUAL | Periodo: {target_year}-{target_month:02d} ====="
+    )
+
 
     # =========================
     # HOJA 1 – VENTAS
@@ -31,17 +41,15 @@ def run_pipeline(year=None, month=None):
         os.getenv("PERSYS_SHEET_ID"),
         os.getenv("WORKSHEET_NAME_1"),
         "sales",
-        year,
-        month
+        target_year,
+        target_month
     )
 
     if df_sales_pc_raw.empty:
         logger.warning("No hay ventas este mes")
         df_sales_pc_final = pd.DataFrame()
-        df_sales_pc_final.sample(10)
     else:
         df_sales_pc_final = transform_ventas_peri_collection(df_sales_pc_raw)
-        df_sales_pc_final.sample(10)
 """""
     # =========================
     # HOJA 2 – EGRESOS / GASTOS

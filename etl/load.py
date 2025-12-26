@@ -20,7 +20,7 @@ def load(df: pd.DataFrame):
 
     supabase.table("transactions").upsert(
         data,
-        on_conflict="date,business_id,amount,reference"
+        on_conflict="date,business_id,amount,id_referenced"
     ).execute()
 
-    logger.info("Carga mensual completada (sin duplicados)")
+    logger.info("Carga mensual completada.")

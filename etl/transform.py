@@ -10,8 +10,32 @@ def transform_ventas_peri_collection(df):
         logger.warning("DataFrame vacío, no hay datos para transformar")
         return df
 
+    # =========================
+    # NORMALIZADOR DE CUENTAS
+    # =========================
+    ACCOUNT_MAP = {
+        "BANCO DE LA NACIÓN": "Banco de la Nación",
+        "SCOTIABANK": "Scotiabank",
+        "INTERBANK": "Interbank",
+        "YAPE": "Yape",
+        "PLIN": "Plin",
+        "BBVA": "BBVA",
+        "BCP": "BCP",
+        "TARJETA LINK": "Tarjeta LINK",
+        "EN EFECTIVO": "En Efectivo"
+    }
+
+    def normalize_account(value):
+        if not value:
+            return None
+
+        key = str(value).strip().upper()
+        return ACCOUNT_MAP.get(key, value.title())
+
+    # =========================
+    # TRANSFORMACIÓN
+    # =========================
     df_transformed = pd.DataFrame({
-        "id":df["IdPedido"].astype(str),
         "date": df["fecha"].dt.date,
         "type": "income",
         "business_id": "negocio1",
@@ -20,8 +44,9 @@ def transform_ventas_peri_collection(df):
         "description": "Venta de vestidos Peri Collection",
         "reference": None,
         "from_account": None,
-        "to_account": df.get("MetodoPago"),
-        "is_invoiced": False
+        "to_account": df.get("MetodoPago").apply(normalize_account),
+        "is_invoiced": False,
+        "id_referenced": df["IdPedido"].astype(str)
     })
 
     logger.info(
@@ -33,7 +58,7 @@ def transform_ventas_peri_collection(df):
     # =========================
     logger.info("Sample de registros transformados:")
     logger.info(
-        "\n" + df_transformed.head(5).to_string(index=False)
+        "\n" + df_transformed.head(15).to_string(index=False)
     )
 
     return df_transformed
